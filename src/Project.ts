@@ -2,7 +2,7 @@ import {
   AnnotationContext,
   AnnotationTypeDeclarationContext,
   ClassDeclarationContext,
-  CompilationUnitContext,
+  CompilationUnitContext as CompilationUnitContextBase,
   ConstructorDeclarationContext,
   ElementValueContext,
   EnumConstantContext,
@@ -23,6 +23,9 @@ import { Expression } from "./Expression";
 import { PrimitiveType } from "./PrimitiveType";
 import { resolve } from "./resolve";
 import { TypeReference } from "./TypeReference";
+
+
+type CompilationUnitContext = CompilationUnitContextBase & { source?: String };
 
 export class Project {
   public compilationUnits: CompilationUnit[];

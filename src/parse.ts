@@ -70,8 +70,8 @@ type FilesParser = {
   readErrorHandler?: FileErrorHandler,
   parseErrorHandler?: FileErrorHandler,
 }
-type Sync = FilesParser & { read: (file: string) => string };
-type Async = FilesParser & { readAsync: (file: string) => Promise<string> };
+type Sync<S extends String = string> = FilesParser & { read: (file: string) => S };
+type Async<S extends String = string> = FilesParser & { readAsync: (file: string) => Promise<S> };
 
 export function parse(sources: string[]): Project;
 export function parse(input: Sync): Project;
@@ -156,7 +156,7 @@ function errorParse(file: string, e: any): never {
   throw e;
 }
 
-function parseFile(source: string): CompilationUnit {
+function parseFile(source: String): CompilationUnit {
   const dummyProject = {} as Project;
   const dummyParent = {} as Model;
 
@@ -202,7 +202,7 @@ function parseFile(source: string): CompilationUnit {
 
   const visitor = createVisitor({
     visitCompilationUnit(ctx) {
-      compilationUnit = new CompilationUnit(dummyProject, ctx);
+      compilationUnit = new CompilationUnit(dummyProject, Object.assign(ctx, { source }));
       visitor.visitChildren(ctx);
     },
     visitPackageDeclaration(ctx) {
@@ -410,7 +410,7 @@ function parseFile(source: string): CompilationUnit {
     }
   });
 
-  const ast = parseAst(source);
+  const ast = parseAst(source.toString());
   visitor.visit(ast);
 
   return compilationUnit!;

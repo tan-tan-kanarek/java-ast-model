@@ -100,6 +100,45 @@ const project = parse({
         throw new Error(`Error parsing file ${file}: ${error.message}`);
     },
 });
+
+### Custom Source Object
+
+```typescript
+import { resolve } from "node:path";
+import { readFileSync } from "node:fs";
+import { parse } from "java-model";
+
+class CustomSourceFile extends String {
+    sourcePath: string;
+    author: string;
+    teamId: number;
+
+    constructor(source: string, sourcePath: string, author: string, teamId: number) {
+        super(source);
+        this.sourcePath = sourcePath;
+        this.author = author;
+        this.teamId = teamId;
+    }
+}
+
+const project = parse({
+    files: ["input.java"],
+    read: file => {
+        const content = readFileSync(file, "utf8");
+        const sourcePath = path.resolve(file);
+        const author = "John Doe";
+        const teamId = 12345;
+        return new CustomSourceFile(content, sourcePath, author, teamId);
+    }
+});
+
+project.compilationUnits.forEach((compilationUnit) => {
+    const codeSource = compilationUnit.context.source as CustomSourceFile;
+    console.log(`Source Path: ${codeSource.sourcePath}`);
+    console.log(`Author: ${codeSource.author}`);
+    console.log(`Team ID: ${codeSource.teamId}`);
+});
+
 ```
 
 ## License

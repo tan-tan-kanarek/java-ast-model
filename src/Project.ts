@@ -25,17 +25,20 @@ import { resolve } from "./resolve";
 import { TypeReference } from "./TypeReference";
 
 export class Project {
-  private compilationUnits: CompilationUnit[];
+  public compilationUnits: CompilationUnit[];
+  public typeDeclarations: TypeDeclaration[];
   private types: { [key: string]: TypeDeclaration };
 
   constructor(compilationUnits: CompilationUnit[]) {
     this.compilationUnits = compilationUnits;
+    this.typeDeclarations = [];
     this.types = {};
     for (const compilationUnit of this.compilationUnits) {
       compilationUnit.parent = this;
       compilationUnit.visitTypes((type) => {
         const qualifiedName = type.qualifiedName;
         if (this.types[qualifiedName] == undefined) {
+          this.typeDeclarations.push(type);
           this.types[qualifiedName] = type;
         } else {
           throw new Error(`Duplicate type name: ${qualifiedName}`);

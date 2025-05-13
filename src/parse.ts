@@ -74,8 +74,8 @@ type Sync<S extends String = string> = FilesParser & { read: (file: string) => S
 type Async<S extends String = string> = FilesParser & { readAsync: (file: string) => Promise<S> };
 
 export function parse(sources: string[]): Project;
-export function parse(input: Sync): Project;
-export function parse(input: Async): Promise<Project>;
+export function parse<S extends String = string>(input: Sync<S>): Project;
+export function parse<S extends String = string>(input: Async<S>): Promise<Project>;
 export function parse(
   input: string[] | Sync | Async
 ): Project | Promise<Project> {

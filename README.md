@@ -80,6 +80,28 @@ project.visitTypes(type => {
 });
 ```
 
+### Error Handling
+
+On both handlers, readErrorHandler and parseErrorHandler, you can throw an error, or ignore it.
+Ignoring the error will omit the file from the project.
+Throwing an error will stop the parsing process.
+
+```typescript
+import { readFile } from "node:fs/promises";
+import { parse } from "java-model";
+
+const project = parse({
+    files: ["input.java"],
+    readAsync: file => readFile(file, "utf8")
+    readErrorHandler: (file, error) => {
+        console.error(`Error reading file ${file}: ${error.message}`);
+    },
+    parseErrorHandler: (file, error) => {
+        throw new Error(`Error parsing file ${file}: ${error.message}`);
+    },
+});
+```
+
 ## License
 
 [MIT](LICENSE)

@@ -64,8 +64,14 @@ import {
 } from "./Project";
 import { PrimitiveType } from "./PrimitiveType";
 
-type Sync = { files: string[]; read: (file: string) => string };
-type Async = { files: string[]; readAsync: (file: string) => Promise<string> };
+type FileErrorHandler = (file: string, e: any) => void;
+type FilesParser = {
+  files: Iterable<string>
+  readErrorHandler?: FileErrorHandler,
+  parseErrorHandler?: FileErrorHandler,
+}
+type Sync = FilesParser & { read: (file: string) => string };
+type Async = FilesParser & { readAsync: (file: string) => Promise<string> };
 
 export function parse(sources: string[]): Project;
 export function parse(input: Sync): Project;
@@ -83,21 +89,32 @@ export function parse(
 }
 
 function parseSync(input: Sync) {
-  return new Project(
-    input.files.map((file) => {
+  const compilationUnits: CompilationUnit[] = [];
+  for (const file of input.files) {
       let source;
       try {
         source = input.read(file);
       } catch (e) {
-        errorRead(file, e);
+        if (input.readErrorHandler) {
+          input.readErrorHandler(file, e);
+        }
+        else {
+          errorRead(file, e);
+        }
+        continue;
       }
       try {
-        return parseFile(source);
+        compilationUnits.push(parseFile(source));
       } catch (e) {
-        errorParse(file, e);
+        if (input.parseErrorHandler) {
+          input.parseErrorHandler(file, e);
+        }
+        else {
+          errorParse(file, e);
+        }
       }
-    })
-  );
+  }
+  return new Project(compilationUnits);
 }
 
 async function parseAsync(input: Async) {
@@ -107,12 +124,23 @@ async function parseAsync(input: Async) {
     try {
       source = await input.readAsync(file);
     } catch (e) {
-      errorRead(file, e);
+        if (input.readErrorHandler) {
+          input.readErrorHandler(file, e);
+        }
+        else {
+          errorRead(file, e);
+        }
+        continue;
     }
     try {
       compilationUnits.push(parseFile(source));
     } catch (e) {
-      errorParse(file, e);
+        if (input.parseErrorHandler) {
+          input.parseErrorHandler(file, e);
+        }
+        else {
+          errorParse(file, e);
+        }
     }
   }
   return new Project(compilationUnits);
